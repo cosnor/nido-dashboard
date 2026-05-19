@@ -17,6 +17,9 @@ import {
   Bird,
   ChevronLeft,
   ChevronRight,
+  Heart,
+  RefreshCw,
+  Trees,
 } from "lucide-react"
 
 interface DashboardLayoutProps {
@@ -27,9 +30,12 @@ interface DashboardLayoutProps {
 
 const navItems = [
   { id: "home", label: "Inicio", icon: Home },
+  { id: "motivation", label: "Motivación", icon: Heart },
   { id: "analysis", label: "Análisis Exploratorio", icon: BarChart3 },
-  { id: "interaction", label: "Panel de Interacción", icon: Mic },
+  { id: "interaction", label: "Identificación de Aves", icon: Mic },
   { id: "pipeline", label: "Pipeline del Modelo", icon: GitBranch },
+  { id: "lightgbm", label: "Modelo LightGBM", icon: Trees },
+  { id: "retraining", label: "Reentrenamiento", icon: RefreshCw },
   { id: "applications", label: "Aplicaciones", icon: Layers },
   { id: "comparison", label: "Comparación de Modelos", icon: LineChart },
 ]
@@ -105,21 +111,37 @@ function DesktopSidebar({
   return (
     <aside
       className={cn(
-        "hidden lg:flex flex-col h-screen bg-sidebar border-r border-sidebar-border transition-all duration-300",
+        "hidden lg:flex flex-col h-screen bg-sidebar border-r border-sidebar-border transition-all duration-300 relative",
         collapsed ? "w-[72px]" : "w-64"
       )}
     >
-      <div className="flex items-center justify-between h-16 px-4 border-b border-sidebar-border">
+      <div className={cn(
+        "flex items-center h-16 px-4 border-b border-sidebar-border",
+        collapsed ? "justify-center" : "justify-between"
+      )}>
         <NidoLogo collapsed={collapsed} />
+        {!collapsed && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            onClick={() => setCollapsed(true)}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+      {/* Expand button when collapsed */}
+      {collapsed && (
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-muted-foreground hover:text-foreground"
-          onClick={() => setCollapsed(!collapsed)}
+          className="absolute -right-3 top-20 h-6 w-6 rounded-full bg-sidebar border border-sidebar-border text-muted-foreground hover:text-foreground hover:bg-muted z-10"
+          onClick={() => setCollapsed(false)}
         >
-          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          <ChevronRight className="h-3 w-3" />
         </Button>
-      </div>
+      )}
       <ScrollArea className="flex-1 py-4">
         <nav className="flex flex-col gap-1 px-3">
           {navItems.map((item) => (

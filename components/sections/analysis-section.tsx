@@ -12,15 +12,26 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
   AreaChart,
   Area,
   LineChart,
   Line,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
 } from "recharts"
-import { Filter, Map, TrendingUp, Volume2 } from "lucide-react"
+import { Filter, Map, TrendingUp, Volume2, MapPin } from "lucide-react"
+import {
+  ComposableMap,
+  Geographies,
+  Geography,
+  Marker,
+} from "react-simple-maps"
+
+// Colombia GeoJSON simplified
+const COLOMBIA_GEO_URL = "https://raw.githubusercontent.com/deldersveld/topojson/master/countries/colombia/colombia-departments.json"
 
 // Mock data for charts
 const sightingsData = [
@@ -35,10 +46,11 @@ const sightingsData = [
 ]
 
 const audioDistributionData = [
-  { name: "Cantos", value: 45, color: "var(--color-chart-1)" },
-  { name: "Llamadas", value: 28, color: "var(--color-chart-2)" },
-  { name: "Alarmas", value: 15, color: "var(--color-chart-3)" },
-  { name: "Otros", value: 12, color: "var(--color-chart-4)" },
+  { type: "Cantos", count: 45000, percentage: 45 },
+  { type: "Llamadas", count: 28000, percentage: 28 },
+  { type: "Alarmas", count: 15000, percentage: 15 },
+  { type: "Vuelo", count: 8000, percentage: 8 },
+  { type: "Otros", count: 4000, percentage: 4 },
 ]
 
 const elevationData = [
@@ -74,7 +86,26 @@ const familyData = [
   { familia: "Icteridae", especies: 45 },
 ]
 
-const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; name: string }>; label?: string }) => {
+// Audio characteristics for radar chart
+const audioCharacteristicsData = [
+  { characteristic: "Frecuencia", Cantos: 85, Llamadas: 70, Alarmas: 95 },
+  { characteristic: "Duración", Cantos: 90, Llamadas: 40, Alarmas: 30 },
+  { characteristic: "Complejidad", Cantos: 95, Llamadas: 50, Alarmas: 20 },
+  { characteristic: "Repetición", Cantos: 70, Llamadas: 85, Alarmas: 90 },
+  { characteristic: "Volumen", Cantos: 75, Llamadas: 60, Alarmas: 100 },
+]
+
+// Hotspots for the map
+const birdHotspots = [
+  { name: "Bogotá", coordinates: [-74.0721, 4.7109] as [number, number], species: 450 },
+  { name: "Medellín", coordinates: [-75.5636, 6.2518] as [number, number], species: 380 },
+  { name: "Cali", coordinates: [-76.5320, 3.4516] as [number, number], species: 420 },
+  { name: "Leticia", coordinates: [-69.9406, -4.2150] as [number, number], species: 520 },
+  { name: "Santa Marta", coordinates: [-74.1990, 11.2408] as [number, number], species: 310 },
+  { name: "Bucaramanga", coordinates: [-73.1198, 7.1254] as [number, number], species: 290 },
+]
+
+const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; name: string; color?: string }>; label?: string }) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
@@ -144,6 +175,73 @@ function FilterBar() {
   )
 }
 
+function ColombiaMap() {
+  return (
+    <Card className="bg-card border-border">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg flex items-center gap-2">
+          <MapPin className="w-5 h-5 text-accent" />
+          Mapa de Avistamientos en Colombia
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="h-[400px] w-full relative">
+          <ComposableMap
+            projection="geoMercator"
+            projectionConfig={{
+              scale: 1800,
+              center: [-74, 4.5],
+            }}
+            className="w-full h-full"
+          >
+            <Geographies geography={COLOMBIA_GEO_URL}>
+              {({ geographies }) =>
+                geographies.map((geo) => (
+                  <Geography
+                    key={geo.rsmKey}
+                    geography={geo}
+                    fill="var(--color-secondary)"
+                    stroke="var(--color-border)"
+                    strokeWidth={0.5}
+                    style={{
+                      default: { outline: "none" },
+                      hover: { fill: "var(--color-primary)", opacity: 0.3, outline: "none" },
+                      pressed: { outline: "none" },
+                    }}
+                  />
+                ))
+              }
+            </Geographies>
+            {birdHotspots.map(({ name, coordinates, species }) => (
+              <Marker key={name} coordinates={coordinates}>
+                <circle
+                  r={Math.sqrt(species) / 3}
+                  fill="var(--color-primary)"
+                  fillOpacity={0.7}
+                  stroke="var(--color-primary-foreground)"
+                  strokeWidth={1}
+                />
+                <title>{`${name}: ${species} especies`}</title>
+              </Marker>
+            ))}
+          </ComposableMap>
+          <div className="absolute bottom-4 left-4 bg-card/90 backdrop-blur-sm border border-border rounded-lg p-3">
+            <p className="text-xs font-medium text-foreground mb-2">Hotspots de Biodiversidad</p>
+            <div className="space-y-1">
+              {birdHotspots.slice(0, 4).map((spot) => (
+                <div key={spot.name} className="flex items-center gap-2 text-xs">
+                  <div className="w-2 h-2 rounded-full bg-primary" />
+                  <span className="text-muted-foreground">{spot.name}: {spot.species} spp</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 export function AnalysisSection() {
   return (
     <div className="space-y-6">
@@ -160,6 +258,9 @@ export function AnalysisSection() {
 
       {/* Filter Bar */}
       <FilterBar />
+
+      {/* Colombia Map - Full Width */}
+      <ColombiaMap />
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -186,7 +287,7 @@ export function AnalysisSection() {
           </CardContent>
         </Card>
 
-        {/* Audio Type Distribution */}
+        {/* Audio Type Distribution - Changed to Horizontal Bar Chart */}
         <Card className="bg-card border-border">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
@@ -195,35 +296,55 @@ export function AnalysisSection() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-72 flex items-center">
+            <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={audioDistributionData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={2}
-                    dataKey="value"
-                    label={({ name, value }) => `${name}: ${value}%`}
-                    labelLine={false}
-                  >
-                    {audioDistributionData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
+                <BarChart data={audioDistributionData} layout="vertical" margin={{ left: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                  <XAxis type="number" stroke="var(--color-muted-foreground)" fontSize={12} />
+                  <YAxis dataKey="type" type="category" stroke="var(--color-muted-foreground)" fontSize={12} width={70} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="count" fill="var(--color-chart-2)" radius={[0, 4, 4, 0]} name="Registros" />
+                </BarChart>
               </ResponsiveContainer>
             </div>
-            <div className="flex flex-wrap justify-center gap-4 mt-2">
-              {audioDistributionData.map((item, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                  <span className="text-xs text-muted-foreground">{item.name}</span>
-                </div>
-              ))}
+          </CardContent>
+        </Card>
+
+        {/* Audio Characteristics Radar */}
+        <Card className="bg-card border-border">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Volume2 className="w-5 h-5 text-nido-coral" />
+              Características de Audio por Tipo
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart data={audioCharacteristicsData}>
+                  <PolarGrid stroke="var(--color-border)" />
+                  <PolarAngleAxis dataKey="characteristic" stroke="var(--color-muted-foreground)" fontSize={11} />
+                  <PolarRadiusAxis stroke="var(--color-muted-foreground)" fontSize={10} />
+                  <Radar name="Cantos" dataKey="Cantos" stroke="var(--color-chart-1)" fill="var(--color-chart-1)" fillOpacity={0.3} />
+                  <Radar name="Llamadas" dataKey="Llamadas" stroke="var(--color-chart-2)" fill="var(--color-chart-2)" fillOpacity={0.3} />
+                  <Radar name="Alarmas" dataKey="Alarmas" stroke="var(--color-chart-3)" fill="var(--color-chart-3)" fillOpacity={0.3} />
+                  <Tooltip />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex justify-center gap-4 mt-2">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "var(--color-chart-1)" }} />
+                <span className="text-xs text-muted-foreground">Cantos</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "var(--color-chart-2)" }} />
+                <span className="text-xs text-muted-foreground">Llamadas</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "var(--color-chart-3)" }} />
+                <span className="text-xs text-muted-foreground">Alarmas</span>
+              </div>
             </div>
           </CardContent>
         </Card>

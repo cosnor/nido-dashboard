@@ -5,14 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Upload,
   Mic,
   MicOff,
   MapPin,
-  Mountain,
   Calendar,
   Play,
   Pause,
@@ -21,17 +21,85 @@ import {
   AlertCircle,
   Navigation,
   FileAudio,
+  Bird,
+  ExternalLink,
+  Map,
+  Building2,
+  Crosshair,
+  Mountain,
 } from "lucide-react"
+import {
+  ComposableMap,
+  Geographies,
+  Geography,
+  Marker,
+} from "react-simple-maps"
+
+const COLOMBIA_GEO_URL = "https://raw.githubusercontent.com/deldersveld/topojson/master/countries/colombia/colombia-departments.json"
+
+// Colombian cities with coordinates and elevation
+const colombianCities = [
+  { name: "Bogotá", lat: 4.7109, lng: -74.0721, elevation: 2640, department: "Cundinamarca" },
+  { name: "Medellín", lat: 6.2518, lng: -75.5636, elevation: 1495, department: "Antioquia" },
+  { name: "Cali", lat: 3.4516, lng: -76.5320, elevation: 1018, department: "Valle del Cauca" },
+  { name: "Barranquilla", lat: 10.9639, lng: -74.7964, elevation: 18, department: "Atlántico" },
+  { name: "Cartagena", lat: 10.3910, lng: -75.4794, elevation: 2, department: "Bolívar" },
+  { name: "Santa Marta", lat: 11.2408, lng: -74.1990, elevation: 6, department: "Magdalena" },
+  { name: "Bucaramanga", lat: 7.1254, lng: -73.1198, elevation: 959, department: "Santander" },
+  { name: "Pereira", lat: 4.8133, lng: -75.6961, elevation: 1411, department: "Risaralda" },
+  { name: "Manizales", lat: 5.0703, lng: -75.5138, elevation: 2153, department: "Caldas" },
+  { name: "Villavicencio", lat: 4.1420, lng: -73.6266, elevation: 467, department: "Meta" },
+  { name: "Leticia", lat: -4.2150, lng: -69.9406, elevation: 96, department: "Amazonas" },
+  { name: "Armenia", lat: 4.5389, lng: -75.6723, elevation: 1483, department: "Quindío" },
+  { name: "Neiva", lat: 2.9273, lng: -75.2819, elevation: 442, department: "Huila" },
+  { name: "Popayán", lat: 2.4419, lng: -76.6061, elevation: 1737, department: "Cauca" },
+  { name: "Tunja", lat: 5.5446, lng: -73.3578, elevation: 2820, department: "Boyacá" },
+]
+
+// Mock bird prediction results
+const mockPredictions = [
+  {
+    name: "Tangara Dorada",
+    scientificName: "Tangara arthus",
+    confidence: 0.94,
+    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Golden_tanager_%28Tangara_arthus_aurulenta%29.jpg/1200px-Golden_tanager_%28Tangara_arthus_aurulenta%29.jpg",
+    wikipediaUrl: "https://es.wikipedia.org/wiki/Tangara_arthus",
+    family: "Thraupidae",
+    conservationStatus: "LC",
+  },
+  {
+    name: "Colibrí Chillón",
+    scientificName: "Colibri coruscans",
+    confidence: 0.78,
+    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Sparkling_Violetear_JCB.jpg/1200px-Sparkling_Violetear_JCB.jpg",
+    wikipediaUrl: "https://es.wikipedia.org/wiki/Colibri_coruscans",
+    family: "Trochilidae",
+    conservationStatus: "LC",
+  },
+  {
+    name: "Mirla Patiamarilla",
+    scientificName: "Turdus fuscater",
+    confidence: 0.65,
+    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Great_Thrush_-_Colombia_S4E2637_%2816663696109%29.jpg/1200px-Great_Thrush_-_Colombia_S4E2637_%2816663696109%29.jpg",
+    wikipediaUrl: "https://es.wikipedia.org/wiki/Turdus_fuscater",
+    family: "Turdidae",
+    conservationStatus: "LC",
+  },
+]
 
 export function InteractionSection() {
   const [audioFile, setAudioFile] = useState<File | null>(null)
   const [isRecording, setIsRecording] = useState(false)
   const [recordedAudio, setRecordedAudio] = useState<string | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null)
-  const [elevation, setElevation] = useState([1500])
+  const [location, setLocation] = useState<{ lat: number; lng: number; elevation: number; name?: string } | null>(null)
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0])
   const [manualCoords, setManualCoords] = useState({ lat: "", lng: "" })
+  const [selectedCity, setSelectedCity] = useState<string>("")
+  const [locationMethod, setLocationMethod] = useState<"map" | "city" | "gps" | "manual">("city")
+  const [mapClickCoords, setMapClickCoords] = useState<{ lat: number; lng: number } | null>(null)
+  const [showPrediction, setShowPrediction] = useState(false)
+  const [isProcessing, setIsProcessing] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,33 +107,56 @@ export function InteractionSection() {
     if (file) {
       setAudioFile(file)
       setRecordedAudio(null)
+      setShowPrediction(false)
     }
   }
 
   const toggleRecording = () => {
     if (isRecording) {
-      // Stop recording (mock)
       setIsRecording(false)
       setRecordedAudio("recorded_audio_mock.wav")
       setAudioFile(null)
+      setShowPrediction(false)
     } else {
-      // Start recording (mock)
       setIsRecording(true)
     }
   }
 
   const getCurrentLocation = () => {
-    // Mock geolocation
-    setLocation({ lat: 4.7109, lng: -74.0721 })
+    // Mock geolocation - would get elevation from API based on coords
+    setLocation({ lat: 4.7109, lng: -74.0721, elevation: 2640, name: "Mi ubicación" })
   }
 
   const setManualLocation = () => {
     if (manualCoords.lat && manualCoords.lng) {
+      // Mock elevation calculation
+      const elevation = Math.floor(Math.random() * 3000) + 100
       setLocation({
         lat: parseFloat(manualCoords.lat),
         lng: parseFloat(manualCoords.lng),
+        elevation,
       })
     }
+  }
+
+  const handleCitySelect = (cityName: string) => {
+    setSelectedCity(cityName)
+    const city = colombianCities.find(c => c.name === cityName)
+    if (city) {
+      setLocation({
+        lat: city.lat,
+        lng: city.lng,
+        elevation: city.elevation,
+        name: city.name,
+      })
+    }
+  }
+
+  const handleMapClick = (lat: number, lng: number) => {
+    // Mock elevation calculation based on coordinates
+    const elevation = Math.floor(Math.random() * 3000) + 100
+    setMapClickCoords({ lat, lng })
+    setLocation({ lat, lng, elevation })
   }
 
   const getDayOfYear = (dateStr: string) => {
@@ -80,8 +171,19 @@ export function InteractionSection() {
     setAudioFile(null)
     setRecordedAudio(null)
     setLocation(null)
-    setElevation([1500])
     setManualCoords({ lat: "", lng: "" })
+    setSelectedCity("")
+    setMapClickCoords(null)
+    setShowPrediction(false)
+  }
+
+  const runPrediction = () => {
+    setIsProcessing(true)
+    // Simulate processing
+    setTimeout(() => {
+      setIsProcessing(false)
+      setShowPrediction(true)
+    }, 2000)
   }
 
   const hasAudio = audioFile || recordedAudio
@@ -92,349 +194,503 @@ export function InteractionSection() {
       {/* Header */}
       <div>
         <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
-          <Mic className="w-6 h-6 text-primary" />
-          Panel de Interacción
+          <Bird className="w-6 h-6 text-primary" />
+          Identificación de Aves
         </h2>
         <p className="text-muted-foreground mt-1">
-          Carga o graba audio y proporciona información geoespacial para la predicción
+          Carga o graba audio bioacústico para identificar especies de aves colombianas
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Audio Input Section */}
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <FileAudio className="w-5 h-5 text-primary" />
-              Entrada de Audio
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* File Upload */}
-            <div className="space-y-3">
-              <Label className="text-sm text-muted-foreground">Subir archivo de audio</Label>
-              <div
-                className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer hover:border-primary/50 hover:bg-primary/5 ${
-                  audioFile ? "border-primary bg-primary/5" : "border-border"
-                }`}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="audio/*"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-                <Upload className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
-                {audioFile ? (
-                  <div>
-                    <p className="text-foreground font-medium">{audioFile.name}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {(audioFile.size / 1024).toFixed(1)} KB
-                    </p>
-                  </div>
-                ) : (
-                  <div>
-                    <p className="text-muted-foreground">
-                      Arrastra o haz clic para subir
-                    </p>
-                    <p className="text-xs text-muted-foreground/70 mt-1">
-                      MP3, WAV, OGG, FLAC
-                    </p>
-                  </div>
-                )}
+      {/* Show prediction results or input form */}
+      {showPrediction ? (
+        <div className="space-y-6">
+          {/* Prediction Results */}
+          <Card className="bg-card border-border border-primary/30">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-500" />
+                Resultados de Identificación
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {mockPredictions.map((bird, index) => (
+                  <Card key={index} className={`bg-secondary/30 border-border ${index === 0 ? "border-primary/50 ring-1 ring-primary/20" : ""}`}>
+                    <CardContent className="p-4">
+                      <div className="aspect-square relative rounded-lg overflow-hidden mb-3 bg-muted">
+                        <img
+                          src={bird.imageUrl}
+                          alt={bird.name}
+                          className="w-full h-full object-cover"
+                          crossOrigin="anonymous"
+                        />
+                        {index === 0 && (
+                          <div className="absolute top-2 right-2">
+                            <Badge className="bg-primary text-primary-foreground">
+                              Top Match
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <div>
+                          <h4 className="font-semibold text-foreground">{bird.name}</h4>
+                          <p className="text-sm text-muted-foreground italic">{bird.scientificName}</p>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <Badge variant="secondary" className="text-xs">
+                            {bird.family}
+                          </Badge>
+                          <span className="text-sm font-semibold text-primary">
+                            {(bird.confidence * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 pt-2">
+                          <Badge variant="outline" className="text-xs text-green-600 border-green-600/30">
+                            {bird.conservationStatus}
+                          </Badge>
+                          <a
+                            href={bird.wikipediaUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-primary hover:underline flex items-center gap-1 ml-auto"
+                          >
+                            Wikipedia <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-            </div>
 
-            {/* Divider */}
-            <div className="flex items-center gap-4">
-              <div className="flex-1 h-px bg-border" />
-              <span className="text-xs text-muted-foreground">o</span>
-              <div className="flex-1 h-px bg-border" />
-            </div>
+              {/* Metadata Summary */}
+              <div className="mt-6 p-4 rounded-lg bg-muted/50 border border-border">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Ubicación:</span>
+                    <p className="font-medium text-foreground">{location?.name || `${location?.lat.toFixed(4)}°, ${location?.lng.toFixed(4)}°`}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Elevación:</span>
+                    <p className="font-medium text-foreground">{location?.elevation}m</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Fecha:</span>
+                    <p className="font-medium text-foreground">{selectedDate}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Día del año:</span>
+                    <p className="font-medium text-foreground">{getDayOfYear(selectedDate)}</p>
+                  </div>
+                </div>
+              </div>
 
-            {/* Recording */}
-            <div className="space-y-3">
-              <Label className="text-sm text-muted-foreground">Grabar desde el navegador</Label>
-              <div className="flex items-center gap-4">
-                <Button
-                  variant={isRecording ? "destructive" : "default"}
-                  size="lg"
-                  className={`flex-1 gap-2 ${isRecording ? "" : "bg-primary hover:bg-primary/90"}`}
-                  onClick={toggleRecording}
-                >
-                  {isRecording ? (
-                    <>
-                      <MicOff className="w-5 h-5" />
-                      Detener Grabación
-                    </>
-                  ) : (
-                    <>
-                      <Mic className="w-5 h-5" />
-                      Iniciar Grabación
-                    </>
-                  )}
+              <div className="flex gap-3 mt-6">
+                <Button variant="outline" onClick={() => setShowPrediction(false)}>
+                  Nueva Identificación
+                </Button>
+                <Button variant="outline" onClick={clearAll}>
+                  Limpiar Todo
                 </Button>
               </div>
-              {isRecording && (
-                <div className="flex items-center justify-center gap-2 py-3 rounded-lg bg-destructive/10 border border-destructive/20">
-                  <div className="w-3 h-3 rounded-full bg-destructive animate-pulse" />
-                  <span className="text-sm text-destructive">Grabando...</span>
-                  <div className="flex gap-0.5 ml-2">
-                    {[...Array(5)].map((_, i) => (
-                      <div
-                        key={i}
-                        className="w-1 bg-destructive rounded-full wave-bar"
-                        style={{ height: `${12 + Math.random() * 12}px` }}
-                      />
-                    ))}
-                  </div>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Audio Input Section */}
+          <Card className="bg-card border-border">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <FileAudio className="w-5 h-5 text-primary" />
+                Entrada de Audio
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* File Upload */}
+              <div className="space-y-3">
+                <Label className="text-sm text-muted-foreground">Subir archivo de audio</Label>
+                <div
+                  className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer hover:border-primary/50 hover:bg-primary/5 ${
+                    audioFile ? "border-primary bg-primary/5" : "border-border"
+                  }`}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="audio/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  <Upload className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
+                  {audioFile ? (
+                    <div>
+                      <p className="text-foreground font-medium">{audioFile.name}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {(audioFile.size / 1024).toFixed(1)} KB
+                      </p>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-muted-foreground">
+                        Arrastra o haz clic para subir
+                      </p>
+                      <p className="text-xs text-muted-foreground/70 mt-1">
+                        MP3, WAV, OGG, FLAC
+                      </p>
+                    </div>
+                  )}
                 </div>
-              )}
-              {recordedAudio && (
-                <div className="flex items-center justify-between p-3 rounded-lg bg-accent/10 border border-accent/20">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
-                      <FileAudio className="w-5 h-5 text-accent" />
+              </div>
+
+              {/* Divider */}
+              <div className="flex items-center gap-4">
+                <div className="flex-1 h-px bg-border" />
+                <span className="text-xs text-muted-foreground">o</span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+
+              {/* Recording */}
+              <div className="space-y-3">
+                <Label className="text-sm text-muted-foreground">Grabar desde el navegador</Label>
+                <div className="flex items-center gap-4">
+                  <Button
+                    variant={isRecording ? "destructive" : "default"}
+                    size="lg"
+                    className={`flex-1 gap-2 ${isRecording ? "" : "bg-primary hover:bg-primary/90"}`}
+                    onClick={toggleRecording}
+                  >
+                    {isRecording ? (
+                      <>
+                        <MicOff className="w-5 h-5" />
+                        Detener Grabación
+                      </>
+                    ) : (
+                      <>
+                        <Mic className="w-5 h-5" />
+                        Iniciar Grabación
+                      </>
+                    )}
+                  </Button>
+                </div>
+                {isRecording && (
+                  <div className="flex items-center justify-center gap-2 py-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                    <div className="w-3 h-3 rounded-full bg-destructive animate-pulse" />
+                    <span className="text-sm text-destructive">Grabando...</span>
+                    <div className="flex gap-0.5 ml-2">
+                      {[...Array(5)].map((_, i) => (
+                        <div
+                          key={i}
+                          className="w-1 bg-destructive rounded-full wave-bar"
+                          style={{ height: `${12 + Math.random() * 12}px` }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {recordedAudio && (
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-accent/10 border border-accent/20">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
+                        <FileAudio className="w-5 h-5 text-accent" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Audio grabado</p>
+                        <p className="text-xs text-muted-foreground">Listo para análisis</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsPlaying(!isPlaying)}
+                      >
+                        {isPlaying ? (
+                          <Pause className="w-4 h-4" />
+                        ) : (
+                          <Play className="w-4 h-4" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setRecordedAudio(null)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Date Selection */}
+              <div className="space-y-3 pt-4 border-t border-border">
+                <Label className="text-sm text-muted-foreground">Fecha de observación</Label>
+                <Input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="bg-input border-border"
+                />
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border border-border">
+                  <Calendar className="w-4 h-4 text-primary" />
+                  <span className="text-sm text-muted-foreground">
+                    Día del año:{" "}
+                    <span className="font-semibold text-foreground">{getDayOfYear(selectedDate)}</span>
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Location Input Section */}
+          <Card className="bg-card border-border">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-accent" />
+                Ubicación Geográfica
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <Tabs defaultValue="city" onValueChange={(v) => setLocationMethod(v as "map" | "city" | "gps" | "manual")}>
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="city" className="text-xs">
+                    <Building2 className="w-3 h-3 mr-1" />
+                    Ciudad
+                  </TabsTrigger>
+                  <TabsTrigger value="map" className="text-xs">
+                    <Map className="w-3 h-3 mr-1" />
+                    Mapa
+                  </TabsTrigger>
+                  <TabsTrigger value="gps" className="text-xs">
+                    <Navigation className="w-3 h-3 mr-1" />
+                    GPS
+                  </TabsTrigger>
+                  <TabsTrigger value="manual" className="text-xs">
+                    <Crosshair className="w-3 h-3 mr-1" />
+                    Manual
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="city" className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm text-muted-foreground">Selecciona una ciudad</Label>
+                    <Select value={selectedCity} onValueChange={handleCitySelect}>
+                      <SelectTrigger className="bg-input border-border">
+                        <SelectValue placeholder="Elige una ciudad colombiana" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {colombianCities.map((city) => (
+                          <SelectItem key={city.name} value={city.name}>
+                            {city.name}, {city.department}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="map" className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm text-muted-foreground">Haz clic en el mapa para seleccionar</Label>
+                    <div className="h-64 rounded-lg overflow-hidden border border-border relative">
+                      <ComposableMap
+                        projection="geoMercator"
+                        projectionConfig={{
+                          scale: 1400,
+                          center: [-74, 4.5],
+                        }}
+                        className="w-full h-full bg-secondary/30"
+                        onClick={(e: React.MouseEvent) => {
+                          // Simplified click handler - in production, use proper coordinate conversion
+                          const rect = e.currentTarget.getBoundingClientRect()
+                          const x = e.clientX - rect.left
+                          const y = e.clientY - rect.top
+                          // Approximate coordinate mapping for Colombia
+                          const lng = -82 + (x / rect.width) * 16
+                          const lat = 13 - (y / rect.height) * 17
+                          if (lat > -5 && lat < 13 && lng > -82 && lng < -66) {
+                            handleMapClick(lat, lng)
+                          }
+                        }}
+                      >
+                        <Geographies geography={COLOMBIA_GEO_URL}>
+                          {({ geographies }) =>
+                            geographies.map((geo) => (
+                              <Geography
+                                key={geo.rsmKey}
+                                geography={geo}
+                                fill="var(--color-muted)"
+                                stroke="var(--color-border)"
+                                strokeWidth={0.5}
+                                style={{
+                                  default: { outline: "none", cursor: "pointer" },
+                                  hover: { fill: "var(--color-primary)", opacity: 0.4, outline: "none" },
+                                  pressed: { outline: "none" },
+                                }}
+                              />
+                            ))
+                          }
+                        </Geographies>
+                        {mapClickCoords && (
+                          <Marker coordinates={[mapClickCoords.lng, mapClickCoords.lat]}>
+                            <circle r={6} fill="var(--color-primary)" />
+                            <circle r={10} fill="var(--color-primary)" fillOpacity={0.3} />
+                          </Marker>
+                        )}
+                      </ComposableMap>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="gps" className="space-y-4">
+                  <Button
+                    variant="outline"
+                    className="w-full gap-2 border-accent/30 hover:bg-accent/10 hover:border-accent"
+                    onClick={getCurrentLocation}
+                  >
+                    <Navigation className="w-4 h-4 text-accent" />
+                    Obtener mi ubicación actual
+                  </Button>
+                  <p className="text-xs text-muted-foreground text-center">
+                    Se solicitará permiso para acceder a tu GPS
+                  </p>
+                </TabsContent>
+
+                <TabsContent value="manual" className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs text-muted-foreground/70">Latitud</Label>
+                      <Input
+                        type="number"
+                        step="0.0001"
+                        placeholder="4.7109"
+                        value={manualCoords.lat}
+                        onChange={(e) => setManualCoords({ ...manualCoords, lat: e.target.value })}
+                        className="bg-input border-border"
+                      />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-foreground">Audio grabado</p>
-                      <p className="text-xs text-muted-foreground">Listo para análisis</p>
+                      <Label className="text-xs text-muted-foreground/70">Longitud</Label>
+                      <Input
+                        type="number"
+                        step="0.0001"
+                        placeholder="-74.0721"
+                        value={manualCoords.lng}
+                        onChange={(e) => setManualCoords({ ...manualCoords, lng: e.target.value })}
+                        className="bg-input border-border"
+                      />
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setIsPlaying(!isPlaying)}
-                    >
-                      {isPlaying ? (
-                        <Pause className="w-4 h-4" />
-                      ) : (
-                        <Play className="w-4 h-4" />
-                      )}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setRecordedAudio(null)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={setManualLocation}
+                    disabled={!manualCoords.lat || !manualCoords.lng}
+                  >
+                    Establecer ubicación
+                  </Button>
+                </TabsContent>
+              </Tabs>
 
-        {/* Location Input Section */}
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-accent" />
-              Ubicación Geográfica
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Current Location */}
-            <div className="space-y-3">
-              <Label className="text-sm text-muted-foreground">Ubicación automática</Label>
-              <Button
-                variant="outline"
-                className="w-full gap-2 border-accent/30 hover:bg-accent/10 hover:border-accent"
-                onClick={getCurrentLocation}
-              >
-                <Navigation className="w-4 h-4 text-accent" />
-                Obtener mi ubicación actual
-              </Button>
-            </div>
-
-            {/* Manual Coordinates */}
-            <div className="space-y-3">
-              <Label className="text-sm text-muted-foreground">O ingresa coordenadas manualmente</Label>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-xs text-muted-foreground/70">Latitud</Label>
-                  <Input
-                    type="number"
-                    step="0.0001"
-                    placeholder="4.7109"
-                    value={manualCoords.lat}
-                    onChange={(e) => setManualCoords({ ...manualCoords, lat: e.target.value })}
-                    className="bg-input border-border"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs text-muted-foreground/70">Longitud</Label>
-                  <Input
-                    type="number"
-                    step="0.0001"
-                    placeholder="-74.0721"
-                    value={manualCoords.lng}
-                    onChange={(e) => setManualCoords({ ...manualCoords, lng: e.target.value })}
-                    className="bg-input border-border"
-                  />
-                </div>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={setManualLocation}
-                disabled={!manualCoords.lat || !manualCoords.lng}
-              >
-                Establecer ubicación
-              </Button>
-            </div>
-
-            {/* Map Preview (Mock) */}
-            <div className="relative h-32 rounded-lg bg-secondary/50 overflow-hidden border border-border">
-              <div className="absolute inset-0 opacity-30">
-                <svg viewBox="0 0 100 100" className="w-full h-full">
-                  <path d="M20,20 L80,20 L80,80 L20,80 Z" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-border" />
-                  <path d="M20,50 L80,50" stroke="currentColor" strokeWidth="0.3" className="text-border" />
-                  <path d="M50,20 L50,80" stroke="currentColor" strokeWidth="0.3" className="text-border" />
-                </svg>
-              </div>
+              {/* Location Display */}
               {location && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="relative">
-                    <MapPin className="w-8 h-8 text-primary" />
-                    <div className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-green-500 border-2 border-card" />
+                <div className="p-4 rounded-lg bg-accent/10 border border-accent/20 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <span className="text-sm font-medium text-foreground">Ubicación seleccionada</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Coordenadas:</span>
+                      <p className="font-mono text-foreground">
+                        {location.lat.toFixed(4)}°, {location.lng.toFixed(4)}°
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Mountain className="w-4 h-4 text-nido-coral" />
+                      <div>
+                        <span className="text-muted-foreground">Elevación:</span>
+                        <p className="font-semibold text-foreground">{location.elevation}m</p>
+                      </div>
+                    </div>
+                  </div>
+                  {location.name && (
+                    <div className="text-sm">
+                      <span className="text-muted-foreground">Lugar:</span>
+                      <p className="font-medium text-foreground">{location.name}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {!location && (
+                <div className="p-4 rounded-lg bg-muted/50 border border-border flex items-center justify-center gap-2 text-muted-foreground">
+                  <MapPin className="w-4 h-4" />
+                  <span className="text-sm">Sin ubicación seleccionada</span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Action Card */}
+          <Card className={`bg-card border-border lg:col-span-2 ${isReadyForPrediction ? "border-primary/30" : ""}`}>
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isReadyForPrediction ? "bg-primary/10" : "bg-muted"}`}>
+                    {isReadyForPrediction ? (
+                      <CheckCircle className="w-6 h-6 text-primary" />
+                    ) : (
+                      <AlertCircle className="w-6 h-6 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-foreground">
+                      {isReadyForPrediction ? "Listo para identificar" : "Completa los datos requeridos"}
+                    </h4>
+                    <div className="flex items-center gap-3 mt-1">
+                      <Badge variant={hasAudio ? "default" : "outline"} className={hasAudio ? "bg-green-500/10 text-green-500 border-green-500/20" : ""}>
+                        {hasAudio ? <CheckCircle className="w-3 h-3 mr-1" /> : null}
+                        Audio
+                      </Badge>
+                      <Badge variant={location ? "default" : "outline"} className={location ? "bg-green-500/10 text-green-500 border-green-500/20" : ""}>
+                        {location ? <CheckCircle className="w-3 h-3 mr-1" /> : null}
+                        Ubicación
+                      </Badge>
+                    </div>
                   </div>
                 </div>
-              )}
-              {!location && (
-                <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/50 text-sm">
-                  Sin ubicación seleccionada
+                <div className="flex gap-3">
+                  <Button variant="outline" onClick={clearAll}>
+                    Limpiar
+                  </Button>
+                  <Button
+                    className="bg-primary hover:bg-primary/90 min-w-[180px]"
+                    disabled={!isReadyForPrediction || isProcessing}
+                    onClick={runPrediction}
+                  >
+                    {isProcessing ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2" />
+                        Procesando...
+                      </>
+                    ) : (
+                      <>
+                        <Bird className="w-4 h-4 mr-2" />
+                        Identificar Ave
+                      </>
+                    )}
+                  </Button>
                 </div>
-              )}
-            </div>
-            {location && (
-              <div className="flex items-center gap-2 text-sm">
-                <CheckCircle className="w-4 h-4 text-green-500" />
-                <span className="text-muted-foreground">
-                  {location.lat.toFixed(4)}°N, {Math.abs(location.lng).toFixed(4)}°W
-                </span>
               </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Additional Metadata */}
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Mountain className="w-5 h-5 text-nido-coral" />
-              Metadata Adicional
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Elevation */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm text-muted-foreground">Elevación (metros)</Label>
-                <span className="text-lg font-semibold text-foreground">{elevation[0]}m</span>
-              </div>
-              <Slider
-                value={elevation}
-                onValueChange={setElevation}
-                min={0}
-                max={5200}
-                step={100}
-                className="py-2"
-              />
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>0m (Nivel del mar)</span>
-                <span>5,200m (Páramo)</span>
-              </div>
-            </div>
-
-            {/* Date Selection */}
-            <div className="space-y-3">
-              <Label className="text-sm text-muted-foreground">Fecha de observación</Label>
-              <Input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="bg-input border-border"
-              />
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border border-border">
-                <Calendar className="w-4 h-4 text-primary" />
-                <span className="text-sm text-muted-foreground">
-                  Día del año:{" "}
-                  <span className="font-semibold text-foreground">{getDayOfYear(selectedDate)}</span>
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Summary Card */}
-        <Card className={`bg-card border-border ${isReadyForPrediction ? "border-primary/30" : ""}`}>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              {isReadyForPrediction ? (
-                <CheckCircle className="w-5 h-5 text-green-500" />
-              ) : (
-                <AlertCircle className="w-5 h-5 text-muted-foreground" />
-              )}
-              Resumen de Metadata
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between py-2 border-b border-border">
-                <span className="text-sm text-muted-foreground">Audio</span>
-                {hasAudio ? (
-                  <Badge variant="default" className="bg-green-500/10 text-green-500 border-green-500/20">
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    {audioFile ? audioFile.name : "Grabado"}
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="text-muted-foreground">
-                    Pendiente
-                  </Badge>
-                )}
-              </div>
-              <div className="flex items-center justify-between py-2 border-b border-border">
-                <span className="text-sm text-muted-foreground">Ubicación</span>
-                {location ? (
-                  <Badge variant="default" className="bg-green-500/10 text-green-500 border-green-500/20">
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    {location.lat.toFixed(2)}°, {location.lng.toFixed(2)}°
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="text-muted-foreground">
-                    Pendiente
-                  </Badge>
-                )}
-              </div>
-              <div className="flex items-center justify-between py-2 border-b border-border">
-                <span className="text-sm text-muted-foreground">Elevación</span>
-                <Badge variant="secondary">{elevation[0]}m</Badge>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-sm text-muted-foreground">Día del año</span>
-                <Badge variant="secondary">{getDayOfYear(selectedDate)}</Badge>
-              </div>
-            </div>
-
-            <div className="flex gap-3 pt-4">
-              <Button variant="outline" className="flex-1" onClick={clearAll}>
-                Limpiar todo
-              </Button>
-              <Button
-                className="flex-1 bg-primary hover:bg-primary/90"
-                disabled={!isReadyForPrediction}
-              >
-                Ejecutar Predicción
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }
