@@ -41,6 +41,29 @@ const barChartData = [
   { name: "Macro-F1", BirdNET: 68.5, NidoNET: 81.3 },
 ]
 
+const audioGeospatialData = [
+  { metric: "Top-1 Accuracy", AudioOnly: 81.2, GeoOnly: 68.5, Fusion: 89.2, improvement: "+23.2%" },
+  { metric: "Top-5 Accuracy", AudioOnly: 83.9, GeoOnly: 85.2, Fusion: 97.5, improvement: "+9.4%" },
+  { metric: "Macro-F1", AudioOnly: 68.5, GeoOnly: 64.8, Fusion: 86.8, improvement: "+26.6%" },
+  { metric: "MRR", AudioOnly: 45, GeoOnly: 38, Fusion: 58, improvement: "+28.9%" },
+  { metric: "Avg Rank", AudioOnly: 45, GeoOnly: 38, Fusion: 58, improvement: "+28.9%" },
+]
+
+const audioGeospatialRadarData = [
+  { metric: "Precisión", Fusion:  55.47 },
+  { metric: "Recall", Fusion: 57.98},
+  { metric: "F1-Score", Fusion: 55.44 },
+  { metric: "Velocidad", Fusion: 98.39 },
+  { metric: "Robustez", Fusion: 20.29},
+  { metric: "Generalización", Fusion: 68.35 },
+]
+
+const audioGeospatialBarData = [
+  { name: "Top-1", AudioOnly: 72.3, GeoOnly: 68.5, Fusion: 89.2 },
+  { name: "Top-5", AudioOnly: 89.1, GeoOnly: 85.2, Fusion: 97.5 },
+  { name: "Macro-F1", AudioOnly: 68.5, GeoOnly: 64.8, Fusion: 86.8 },
+]
+
 const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; name: string; color: string }>; label?: string }) => {
   if (active && payload && payload.length) {
     return (
@@ -112,6 +135,91 @@ function MetricCard({
             <p className="text-xs text-primary mb-1">NidoNET</p>
             <p className="text-xl font-bold text-primary">
               {nidonet}
+              {isTime ? "ms" : "%"}
+            </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function GenericMetricCard({
+  metric,
+  value1,
+  value2,
+  value3,
+  improvement,
+  label1,
+  label2,
+  label3,
+  color1 = "text-muted-foreground",
+  color2 = "text-primary",
+  color3 = "text-accent",
+  icon: Icon,
+  isTime = false,
+}: {
+  metric: string
+  value1: number
+  value2: number
+  value3: number
+  improvement: string
+  label1: string
+  label2: string
+  label3: string
+  color1?: string
+  color2?: string
+  color3?: string
+  icon: React.ComponentType<{ className?: string }>
+  isTime?: boolean
+}) {
+  const isNegativeImprovement = improvement.startsWith("+") && isTime
+
+  return (
+    <Card className="bg-card border-border">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Icon className="w-5 h-5 text-primary" />
+            <span className="text-sm font-medium text-foreground">{metric}</span>
+          </div>
+          <Badge
+            variant="outline"
+            className={`text-xs ${
+              isNegativeImprovement
+                ? "text-muted-foreground border-muted-foreground/30"
+                : "text-green-500 border-green-500/30 bg-green-500/10"
+            }`}
+          >
+            {isNegativeImprovement ? (
+              improvement
+            ) : (
+              <>
+                <ArrowUp className="w-3 h-3 mr-1" />
+                {improvement}
+              </>
+            )}
+          </Badge>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <p className={`text-xs ${color1} mb-1`}>{label1}</p>
+            <p className={`text-lg font-bold ${color1}`}>
+              {value1}
+              {isTime ? "ms" : "%"}
+            </p>
+          </div>
+          <div>
+            <p className={`text-xs ${color2} mb-1`}>{label2}</p>
+            <p className={`text-lg font-bold ${color2}`}>
+              {value2}
+              {isTime ? "ms" : "%"}
+            </p>
+          </div>
+          <div>
+            <p className={`text-xs ${color3} mb-1`}>{label3}</p>
+            <p className={`text-lg font-bold ${color3}`}>
+              {value3}
               {isTime ? "ms" : "%"}
             </p>
           </div>
@@ -310,6 +418,241 @@ export function ComparisonSection() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Audio vs Geospatial vs Fusion Comparison */}
+      <div className="mt-12 pt-8 border-t border-border">
+        {/* Header */}
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <Target className="w-6 h-6 text-accent" />
+            Análisis por Componente
+          </h2>
+          <p className="text-muted-foreground mt-1">
+            Comparación entre modelo de audio, geoespacial y la fusión optimizada
+          </p>
+        </div>
+
+        {/* Key Insight */}
+        <Card className="bg-gradient-to-r from-accent/10 via-primary/5 to-accent/10 border-accent/20 mb-6">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center flex-shrink-0">
+                <Zap className="w-6 h-6 text-accent" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground mb-1">Poder de la Fusión</h3>
+                <p className="text-sm text-muted-foreground">
+                  La combinación estratégica de análisis de audio con información geoespacial alcanza
+                  <span className="text-accent font-medium"> +23.2% de mejora</span> en Top-1 Accuracy 
+                  frente al modelo de audio solo, demostrando la sinergia entre ambos enfoques.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Metric Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <GenericMetricCard
+            metric="Top-1 Accuracy"
+            value1={72.3}
+            value2={68.5}
+            value3={89.2}
+            improvement="+23.2%"
+            label1="Audio"
+            label2="Geo"
+            label3="Fusion"
+            color1="text-muted-foreground"
+            color2="text-orange-500"
+            color3="text-accent"
+            icon={Target}
+          />
+          <GenericMetricCard
+            metric="Top-5 Accuracy"
+            value1={89.1}
+            value2={85.2}
+            value3={97.5}
+            improvement="+9.4%"
+            label1="Audio"
+            label2="Geo"
+            label3="Fusion"
+            color1="text-muted-foreground"
+            color2="text-orange-500"
+            color3="text-accent"
+            icon={CheckCircle2}
+          />
+          <GenericMetricCard
+            metric="Macro-F1"
+            value1={68.5}
+            value2={64.8}
+            value3={86.8}
+            improvement="+26.6%"
+            label1="Audio"
+            label2="Geo"
+            label3="Fusion"
+            color1="text-muted-foreground"
+            color2="text-orange-500"
+            color3="text-accent"
+            icon={TrendingUp}
+          />
+          <GenericMetricCard
+            metric="Inference Time"
+            value1={45}
+            value2={38}
+            value3={58}
+            improvement="+28.9%"
+            label1="Audio"
+            label2="Geo"
+            label3="Fusion"
+            color1="text-muted-foreground"
+            color2="text-orange-500"
+            color3="text-accent"
+            icon={Clock}
+            isTime
+          />
+        </div>
+
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Bar Chart */}
+          <Card className="bg-card border-border">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Comparación de Métricas de Accuracy</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-72">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={audioGeospatialBarData} barGap={8}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                    <XAxis dataKey="name" stroke="var(--color-muted-foreground)" fontSize={12} />
+                    <YAxis stroke="var(--color-muted-foreground)" fontSize={12} domain={[0, 100]} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend />
+                    <Bar
+                      dataKey="AudioOnly"
+                      fill="var(--color-muted-foreground)"
+                      radius={[4, 4, 0, 0]}
+                      name="Audio"
+                    />
+                    <Bar
+                      dataKey="GeoOnly"
+                      fill="var(--color-orange-500)"
+                      radius={[4, 4, 0, 0]}
+                      name="Geo"
+                    />
+                    <Bar
+                      dataKey="Fusion"
+                      fill="var(--color-accent)"
+                      radius={[4, 4, 0, 0]}
+                      name="Fusion"
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Radar Chart */}
+          <Card className="bg-card border-border">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Análisis Multidimensional por Componente</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-72">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart data={audioGeospatialRadarData}>
+                    <PolarGrid stroke="var(--color-border)" />
+                    <PolarAngleAxis dataKey="metric" stroke="var(--color-muted-foreground)" fontSize={11} />
+                    <PolarRadiusAxis domain={[0, 100]} stroke="var(--color-border)" fontSize={10} />
+                    <Radar
+                      name="Audio"
+                      dataKey="AudioOnly"
+                      stroke="var(--color-muted-foreground)"
+                      fill="var(--color-muted-foreground)"
+                      fillOpacity={0.2}
+                    />
+                    <Radar
+                      name="Geo"
+                      dataKey="GeoOnly"
+                      stroke="var(--color-orange-500)"
+                      fill="var(--color-orange-500)"
+                      fillOpacity={0.3}
+                    />
+                    <Radar
+                      name="Fusion"
+                      dataKey="Fusion"
+                      stroke="var(--color-accent)"
+                      fill="var(--color-accent)"
+                      fillOpacity={0.4}
+                    />
+                    <Legend />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Comparison Table */}
+        <Card className="bg-card border-border">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Tabla Resumen por Componente</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Métrica</th>
+                    <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground">Audio</th>
+                    <th className="text-center py-3 px-4 text-sm font-medium text-orange-500">Geo</th>
+                    <th className="text-center py-3 px-4 text-sm font-medium text-accent">Fusion</th>
+                    <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground">Mejora</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {audioGeospatialData.map((row, i) => (
+                    <tr key={i} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                      <td className="py-3 px-4 text-sm text-foreground font-medium">{row.metric}</td>
+                      <td className="py-3 px-4 text-sm text-center text-muted-foreground">
+                        {row.AudioOnly}
+                        {row.metric.includes("ms") ? "ms" : "%"}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-center text-orange-500 font-semibold">
+                        {row.GeoOnly}
+                        {row.metric.includes("ms") ? "ms" : "%"}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-center text-accent font-semibold">
+                        {row.Fusion}
+                        {row.metric.includes("ms") ? "ms" : "%"}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-center">
+                        <Badge
+                          variant="outline"
+                          className={`text-xs ${
+                            row.metric.includes("Inference")
+                              ? "text-muted-foreground border-muted-foreground/30"
+                              : "text-green-500 border-green-500/30 bg-green-500/10"
+                          }`}
+                        >
+                          {row.improvement}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-4 p-3 rounded-lg bg-muted/30 border border-border">
+              <p className="text-xs text-muted-foreground">
+                <span className="font-medium text-foreground">Nota:</span> El modelo geoespacial solo tiene un desempeño inferior 
+                en precisión pero superior en velocidad. La fusión aprovecha las fortalezas de ambos para alcanzar 
+                resultados óptimos en la relación precisión-velocidad.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }
