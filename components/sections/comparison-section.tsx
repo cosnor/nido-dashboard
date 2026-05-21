@@ -20,42 +20,43 @@ import {
 import { Trophy, Zap, Target, Clock, TrendingUp, CheckCircle2, ArrowUp } from "lucide-react"
 
 const comparisonData = [
-  { metric: "Top-1 Accuracy", BirdNET: 72.3, NidoNET: 84.7, improvement: "+17.2%" },
-  { metric: "Top-5 Accuracy", BirdNET: 89.1, NidoNET: 95.2, improvement: "+6.8%" },
-  { metric: "Macro-F1", BirdNET: 68.5, NidoNET: 81.3, improvement: "+18.7%" },
-  { metric: "Inference (ms)", BirdNET: 45, NidoNET: 52, improvement: "+15.6%" },
+  { metric: "Top-1 Accuracy", BirdNET: 69.86, NidoNET: 81.53, improvement: "+16.7%" },
+  { metric: "Top-5 Accuracy", BirdNET: 84.87, NidoNET: 85, improvement: "0.05%" },
+  { metric: "Macro-F1", BirdNET: 60.1, NidoNET: 55.4, improvement: "-7.8%" },
+  { metric: "MRR", BirdNET: 77.5, NidoNET: 82.9, improvement: "+7.0%" },
+  { metric: "Avg Rank", BirdNET: 2.59, NidoNET: 48.1, improvement: "-1757.1%" }
 ]
 
 const radarData = [
-  { metric: "Precisión", BirdNET: 72, NidoNET: 85 },
-  { metric: "Recall", BirdNET: 68, NidoNET: 82 },
-  { metric: "F1-Score", BirdNET: 70, NidoNET: 83 },
-  { metric: "Velocidad", BirdNET: 90, NidoNET: 85 },
-  { metric: "Robustez", BirdNET: 65, NidoNET: 88 },
-  { metric: "Generalización", BirdNET: 60, NidoNET: 80 },
+  { metric: "Precisión", BirdNET: 66.1, NidoNET: 55.47 },
+  { metric: "Recall", BirdNET: 58.9, NidoNET: 57.98 },
+  { metric: "F1-Score", BirdNET: 60.1, NidoNET: 55.44 },
+  { metric: "Velocidad", BirdNET: 89.8, NidoNET: 98.39 },
+  { metric: "Robustez", BirdNET: 82.3, NidoNET: 20.29 },
+  { metric: "Generalización", BirdNET: 77.5, NidoNET: 68.35 },
 ]
 
 const barChartData = [
-  { name: "Top-1", BirdNET: 72.3, NidoNET: 84.7 },
-  { name: "Top-5", BirdNET: 89.1, NidoNET: 95.2 },
-  { name: "Macro-F1", BirdNET: 68.5, NidoNET: 81.3 },
+  { name: "Top-1", BirdNET: 69.86, NidoNET: 81.53 },
+  { name: "Top-5", BirdNET: 84.87, NidoNET: 85 },
+  { name: "MRR", BirdNET: 77.5, NidoNET: 82.9 },
 ]
 
 const audioGeospatialData = [
-  { metric: "Top-1 Accuracy", AudioOnly: 81.2, GeoOnly: 68.5, Fusion: 89.2, improvement: "+23.2%" },
-  { metric: "Top-5 Accuracy", AudioOnly: 83.9, GeoOnly: 85.2, Fusion: 97.5, improvement: "+9.4%" },
-  { metric: "Macro-F1", AudioOnly: 68.5, GeoOnly: 64.8, Fusion: 86.8, improvement: "+26.6%" },
-  { metric: "MRR", AudioOnly: 45, GeoOnly: 38, Fusion: 58, improvement: "+28.9%" },
-  { metric: "Avg Rank", AudioOnly: 45, GeoOnly: 38, Fusion: 58, improvement: "+28.9%" },
+  { metric: "Top-1 Accuracy", AudioOnly: 81.2, GeoOnly: 2, Fusion: 81.53, improvement: "+0.4%" },
+  { metric: "Top-5 Accuracy", AudioOnly: 83.9, GeoOnly: 7.87, Fusion: 84.23, improvement: "+0.4%" },
+  { metric: "Macro-F1", AudioOnly: 54.7, GeoOnly: 1, Fusion: 55.4, improvement: "+1.3%" },
+  { metric: "MRR", AudioOnly: 49.65, GeoOnly: 6.19, Fusion: 82.9, improvement: "+67.0%" },
+  { metric: "Avg Rank", AudioOnly: 49.65, GeoOnly: 333, Fusion: 48.1, improvement: "+3.1%" }
 ]
 
 const audioGeospatialRadarData = [
-  { metric: "Precisión", Fusion:  55.47 },
-  { metric: "Recall", Fusion: 57.98},
-  { metric: "F1-Score", Fusion: 55.44 },
-  { metric: "Velocidad", Fusion: 98.39 },
-  { metric: "Robustez", Fusion: 20.29},
-  { metric: "Generalización", Fusion: 68.35 },
+  { metric: "Precisión", NidoNet:  55.47 },
+  { metric: "Recall", NidoNet: 57.98},
+  { metric: "F1-Score", NidoNet: 55.44 },
+  { metric: "Velocidad", NidoNet: 98.39 },
+  { metric: "Robustez", NidoNet: 20.29},
+  { metric: "Generalización", NidoNet: 68.35 },
 ]
 
 const audioGeospatialBarData = [
