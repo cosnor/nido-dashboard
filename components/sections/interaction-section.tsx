@@ -1,6 +1,8 @@
-"use client"
+  "use client"
 
 import { useState, useRef } from "react"
+import { birds } from "@/lib/data_links"
+import  { Bird as inbird} from "@/lib/data_links"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -66,28 +68,11 @@ const mockPredictions = [
     wikipediaUrl: "https://es.wikipedia.org/wiki/Tangara_arthus",
     family: "Thraupidae",
     conservationStatus: "LC",
-  },
-  {
-    name: "Colibrí Chillón",
-    scientificName: "Colibri coruscans",
-    confidence: 0.78,
-    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Sparkling_Violetear_JCB.jpg/1200px-Sparkling_Violetear_JCB.jpg",
-    wikipediaUrl: "https://es.wikipedia.org/wiki/Colibri_coruscans",
-    family: "Trochilidae",
-    conservationStatus: "LC",
-  },
-  {
-    name: "Mirla Patiamarilla",
-    scientificName: "Turdus fuscater",
-    confidence: 0.65,
-    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Great_Thrush_-_Colombia_S4E2637_%2816663696109%29.jpg/1200px-Great_Thrush_-_Colombia_S4E2637_%2816663696109%29.jpg",
-    wikipediaUrl: "https://es.wikipedia.org/wiki/Turdus_fuscater",
-    family: "Turdidae",
-    conservationStatus: "LC",
-  },
+  }
 ]
 
 export function InteractionSection() {
+  const [predictionResult, setPredictionResult] = useState<any | null>(null)
   const [audioFile, setAudioFile] = useState<File | null>(null)
   const [isRecording, setIsRecording] = useState(false)
   const [recordedAudio, setRecordedAudio] = useState<string | null>(null)
@@ -177,14 +162,56 @@ export function InteractionSection() {
     setShowPrediction(false)
   }
 
-  const runPrediction = () => {
-    setIsProcessing(true)
-    // Simulate processing
-    setTimeout(() => {
-      setIsProcessing(false)
-      setShowPrediction(true)
-    }, 2000)
+const runPrediction = async () => {
+  if (!hasAudio || !location) return
+
+  setIsProcessing(true)
+  setShowPrediction(false)
+
+  try {
+    const formData = new FormData()
+
+    // Audio: puede ser archivo subido o grabado
+    if (audioFile) {
+      console.log("AUDIO FILE:", audioFile)
+      formData.append("audio", audioFile)
+    } else if (recordedAudio) {
+      // Si es grabación, convertir el blob a archivo
+      const response = await fetch(recordedAudio)
+      const blob = await response.blob()
+      formData.append("audio", blob, "recording.wav")
+    }
+
+    // Metadata
+    formData.append("latitude",    location.lat.toString())
+    formData.append("longitude",   location.lng.toString())
+    formData.append("recorded_at", `${selectedDate}T00:00:00`)
+    formData.append("elevation",   location.elevation.toString())
+
+    const res = await fetch("http://127.0.0.1:8000/predict", {
+      method: "POST",
+      body: formData,
+    })
+
+    if (!res.ok) {
+      const error = await res.json()
+      throw new Error(error.detail || "Error en la predicción")
+    }
+
+    const data = await res.json()
+    // Guardar resultado para mostrarlo
+    setPredictionResult(data)
+    setShowPrediction(true)
+
+  } catch (error) {
+    console.error("Error en predicción:", error)
+    
+    // Manejar el error como prefieras, por ejemplo un toast
+    alert(error instanceof Error ? error.message : "Error desconocido")
+  } finally {
+    setIsProcessing(false)
   }
+}
 
   const hasAudio = audioFile || recordedAudio
   const isReadyForPrediction = hasAudio && location
@@ -215,54 +242,58 @@ export function InteractionSection() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {mockPredictions.map((bird, index) => (
-                  <Card key={index} className={`bg-secondary/30 border-border ${index === 0 ? "border-primary/50 ring-1 ring-primary/20" : ""}`}>
-                    <CardContent className="p-4">
-                      <div className="aspect-square relative rounded-lg overflow-hidden mb-3 bg-muted">
-                        <img
-                          src={bird.imageUrl}
-                          alt={bird.name}
-                          className="w-full h-full object-cover"
-                          crossOrigin="anonymous"
-                        />
-                        {index === 0 && (
-                          <div className="absolute top-2 right-2">
-                            <Badge className="bg-primary text-primary-foreground">
-                              Top Match
-                            </Badge>
+                {predictionResult?.predictions?.map((bird: any, index: number) => {
+                  const birdData = birds.find(b => b.scientificName === bird.scientific_name);
+
+                  return (
+                    <Card key={index} className={`bg-secondary/30 border-border ${index === 0 ? "border-primary/50 ring-1 ring-primary/20" : ""}`}>
+                      <CardContent className="p-4">
+                        <div className="aspect-square relative rounded-lg overflow-hidden mb-3 bg-muted">
+                          <img
+                            src={birdData?.imageUrl ?? ""}
+                            alt={birdData?.name}
+                            className="w-full h-full object-cover"
+                            crossOrigin="anonymous"
+                          />
+                          {index === 0 && (
+                            <div className="absolute top-2 right-2">
+                              <Badge className="bg-primary text-primary-foreground">
+                                Top Match
+                              </Badge>
+                            </div>
+                          )}
+                        </div>
+                        <div className="space-y-2">
+                          <div>
+                            <h4 className="font-semibold text-foreground">{bird.scientific_name}</h4>
+                            <p className="text-sm text-muted-foreground italic">{bird.scientific_name}</p>
                           </div>
-                        )}
-                      </div>
-                      <div className="space-y-2">
-                        <div>
-                          <h4 className="font-semibold text-foreground">{bird.name}</h4>
-                          <p className="text-sm text-muted-foreground italic">{bird.scientificName}</p>
+                          <div className="flex items-center justify-between">
+                            <Badge variant="secondary" className="text-xs">
+                              {bird.family}
+                            </Badge>
+                            <span className="text-sm font-semibold text-primary">
+                              {(bird.confidence * 100).toFixed(0)}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 pt-2">
+                            <Badge variant="outline" className="text-xs text-green-600 border-green-600/30">
+                              {birdData?.conservationStatus ?? "LC"}
+                            </Badge>
+                            <a
+                              href={birdData?.wikipediaUrl ?? `https://en.wikipedia.org/wiki/${bird.scientific_name.replace(/ /g, "_")}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-primary hover:underline flex items-center gap-1 ml-auto"
+                            >
+                              Wikipedia <ExternalLink className="w-3 h-3" />
+                            </a>
+                          </div>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <Badge variant="secondary" className="text-xs">
-                            {bird.family}
-                          </Badge>
-                          <span className="text-sm font-semibold text-primary">
-                            {(bird.confidence * 100).toFixed(0)}%
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 pt-2">
-                          <Badge variant="outline" className="text-xs text-green-600 border-green-600/30">
-                            {bird.conservationStatus}
-                          </Badge>
-                          <a
-                            href={bird.wikipediaUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-primary hover:underline flex items-center gap-1 ml-auto"
-                          >
-                            Wikipedia <ExternalLink className="w-3 h-3" />
-                          </a>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
 
               {/* Metadata Summary */}
