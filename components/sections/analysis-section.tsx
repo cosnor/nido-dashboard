@@ -36,7 +36,7 @@ import {
 // Colombia GeoJSON simplified
 const COLOMBIA_GEO_URL = "https://raw.githubusercontent.com/deldersveld/topojson/master/countries/colombia/colombia-departments.json"
 
-// Mock data for charts
+// Mock data for chartss
 const sightingsData = [
   { region: "Antioquia", registros: 18500, especies: 420, confianza: 94 },
   { region: "Valle", registros: 15200, especies: 380, confianza: 91 },
