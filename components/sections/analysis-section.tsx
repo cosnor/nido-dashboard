@@ -1,8 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { Legend } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import Image from "next/image"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   BarChart,
@@ -22,7 +25,7 @@ import {
   PolarRadiusAxis,
   Radar,
 } from "recharts"
-import { Filter, Map, TrendingUp, Volume2, MapPin } from "lucide-react"
+import { Filter, FileCode2, Map, TrendingUp, Volume2, MapPin } from "lucide-react"
 import {
   ComposableMap,
   Geographies,
@@ -35,14 +38,14 @@ const COLOMBIA_GEO_URL = "https://raw.githubusercontent.com/deldersveld/topojson
 
 // Mock data for charts
 const sightingsData = [
-  { region: "Antioquia", registros: 18500 },
-  { region: "Valle", registros: 15200 },
-  { region: "Cundinamarca", registros: 12800 },
-  { region: "Santander", registros: 11400 },
-  { region: "Boyacá", registros: 9800 },
-  { region: "Nariño", registros: 8900 },
-  { region: "Caldas", registros: 7600 },
-  { region: "Risaralda", registros: 6800 },
+  { region: "Antioquia", registros: 18500, especies: 420, confianza: 94 },
+  { region: "Valle", registros: 15200, especies: 380, confianza: 91 },
+  { region: "Cundinamarca", registros: 12800, especies: 350, confianza: 89 },
+  { region: "Santander", registros: 11400, especies: 310, confianza: 87 },
+  { region: "Boyacá", registros: 9800, especies: 280, confianza: 85 },
+  { region: "Nariño", registros: 8900, especies: 260, confianza: 83 },
+  { region: "Caldas", registros: 7600, especies: 240, confianza: 82 },
+  { region: "Risaralda", registros: 6800, especies: 220, confianza: 80 },
 ]
 
 const audioDistributionData = [
@@ -54,27 +57,27 @@ const audioDistributionData = [
 ]
 
 const elevationData = [
-  { elevation: "0-500m", especies: 320, registros: 28000 },
-  { elevation: "500-1000m", especies: 480, registros: 35000 },
-  { elevation: "1000-2000m", especies: 620, registros: 42000 },
-  { elevation: "2000-3000m", especies: 450, registros: 31000 },
-  { elevation: "3000-4000m", especies: 180, registros: 12000 },
-  { elevation: "4000m+", especies: 45, registros: 3500 },
+  { elevation: "0-500m", especies: 320, registros: 28000, diversidad: 85 },
+  { elevation: "500-1000m", especies: 480, registros: 35000, diversidad: 92 },
+  { elevation: "1000-2000m", especies: 620, registros: 42000, diversidad: 98 },
+  { elevation: "2000-3000m", especies: 450, registros: 31000, diversidad: 88 },
+  { elevation: "3000-4000m", especies: 180, registros: 12000, diversidad: 72 },
+  { elevation: "4000m+", especies: 45, registros: 3500, diversidad: 45 },
 ]
 
 const temporalData = [
-  { mes: "Ene", observaciones: 8500 },
-  { mes: "Feb", observaciones: 9200 },
-  { mes: "Mar", observaciones: 11500 },
-  { mes: "Abr", observaciones: 14200 },
-  { mes: "May", observaciones: 12800 },
-  { mes: "Jun", observaciones: 10500 },
-  { mes: "Jul", observaciones: 9800 },
-  { mes: "Ago", observaciones: 10200 },
-  { mes: "Sep", observaciones: 11800 },
-  { mes: "Oct", observaciones: 13500 },
-  { mes: "Nov", observaciones: 12200 },
-  { mes: "Dic", observaciones: 9500 },
+  { mes: "Ene", observaciones: 8500, especies: 320, promedio: 2.66 },
+  { mes: "Feb", observaciones: 9200, especies: 335, promedio: 2.74 },
+  { mes: "Mar", observaciones: 11500, especies: 385, promedio: 2.99 },
+  { mes: "Abr", observaciones: 14200, especies: 450, promedio: 3.15 },
+  { mes: "May", observaciones: 12800, especies: 420, promedio: 3.05 },
+  { mes: "Jun", observaciones: 10500, especies: 380, promedio: 2.76 },
+  { mes: "Jul", observaciones: 9800, especies: 360, promedio: 2.72 },
+  { mes: "Ago", observaciones: 10200, especies: 370, promedio: 2.76 },
+  { mes: "Sep", observaciones: 11800, especies: 400, promedio: 2.95 },
+  { mes: "Oct", observaciones: 13500, especies: 440, promedio: 3.07 },
+  { mes: "Nov", observaciones: 12200, especies: 410, promedio: 2.97 },
+  { mes: "Dic", observaciones: 9500, especies: 350, promedio: 2.71 },
 ]
 
 const familyData = [
@@ -104,6 +107,12 @@ const birdHotspots = [
   { name: "Santa Marta", coordinates: [-74.1990, 11.2408] as [number, number], species: 310 },
   { name: "Bucaramanga", coordinates: [-73.1198, 7.1254] as [number, number], species: 290 },
 ]
+
+type EdaMapAsset = {
+  src: string
+  title: string
+  fileName: string
+}
 
 const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; name: string; color?: string }>; label?: string }) => {
   if (active && payload && payload.length) {
@@ -225,18 +234,114 @@ function ColombiaMap() {
               </Marker>
             ))}
           </ComposableMap>
-          <div className="absolute bottom-4 left-4 bg-card/90 backdrop-blur-sm border border-border rounded-lg p-3">
-            <p className="text-xs font-medium text-foreground mb-2">Hotspots de Biodiversidad</p>
-            <div className="space-y-1">
-              {birdHotspots.slice(0, 4).map((spot) => (
-                <div key={spot.name} className="flex items-center gap-2 text-xs">
-                  <div className="w-2 h-2 rounded-full bg-primary" />
-                  <span className="text-muted-foreground">{spot.name}: {spot.species} spp</span>
-                </div>
+          
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+function EdaMapGallery() {
+  const [maps, setMaps] = useState<EdaMapAsset[]>([])
+  const [selectedMapIndex, setSelectedMapIndex] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadMaps() {
+      try {
+        const response = await fetch("/api/eda-maps")
+
+        if (!response.ok) {
+          throw new Error("No se pudieron cargar los mapas EDA")
+        }
+
+        const data = (await response.json()) as { maps?: EdaMapAsset[] }
+
+        if (isMounted) {
+          setMaps(data.maps ?? [])
+          setSelectedMapIndex(0)
+        }
+      } catch {
+        if (isMounted) {
+          setMaps([])
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    loadMaps()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  const selectedMap = maps[selectedMapIndex]
+
+  if (isLoading) {
+    return (
+      <Card className="bg-card border-border">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <FileCode2 className="w-5 h-5 text-accent" />
+            Mapas EDA
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[420px] w-full animate-pulse rounded-md border border-border bg-muted/40" />
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (!selectedMap) {
+    return <ColombiaMap />
+  }
+
+  return (
+    <Card className="bg-card border-border">
+      <CardHeader className="pb-3">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <FileCode2 className="w-5 h-5 text-accent" />
+            Mapas EDA
+          </CardTitle>
+          {maps.length > 1 && (
+            <div className="flex flex-wrap gap-2">
+              {maps.map((map, index) => (
+                <Button
+                  key={map.src}
+                  type="button"
+                  variant={selectedMapIndex === index ? "default" : "outline"}
+                  size="sm"
+                  className="max-w-52 truncate"
+                  onClick={() => setSelectedMapIndex(index)}
+                  title={map.title}
+                >
+                  {map.title}
+                </Button>
               ))}
             </div>
-          </div>
+          )}
         </div>
+      </CardHeader>
+      <CardContent>
+        <figure className="space-y-3">
+          <div className="flex min-h-[420px] w-full items-center justify-center overflow-hidden rounded-md border border-border bg-muted/30">
+            <iframe
+              src={selectedMap.src}
+              title={selectedMap.title}
+              className="h-[620px] w-full border-0"
+            />
+          </div>
+          <figcaption className="text-sm text-muted-foreground">
+            {selectedMap.title}
+          </figcaption>
+        </figure>
       </CardContent>
     </Card>
   )
@@ -260,7 +365,7 @@ export function AnalysisSection() {
       <FilterBar />
 
       {/* Colombia Map - Full Width */}
-      <ColombiaMap />
+      <EdaMapGallery />
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -269,7 +374,7 @@ export function AnalysisSection() {
           <CardHeader className="pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
               <Map className="w-5 h-5 text-primary" />
-              Distribución por Departamento
+              Distribución por Departamento (EDA)
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -281,6 +386,7 @@ export function AnalysisSection() {
                   <YAxis dataKey="region" type="category" stroke="var(--color-muted-foreground)" fontSize={12} width={80} />
                   <Tooltip content={<CustomTooltip />} />
                   <Bar dataKey="registros" fill="var(--color-chart-1)" radius={[0, 4, 4, 0]} name="Registros" />
+                  <Bar dataKey="especies" fill="var(--color-accent)" radius={[0, 4, 4, 0]} name="Especies" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -352,7 +458,7 @@ export function AnalysisSection() {
         {/* Elevation Distribution */}
         <Card className="bg-card border-border">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Distribución por Elevación</CardTitle>
+            <CardTitle className="text-lg">Distribución por Elevación (EDA)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-72">
@@ -366,10 +472,19 @@ export function AnalysisSection() {
                     type="monotone"
                     dataKey="especies"
                     stackId="1"
-                    stroke="var(--color-chart-2)"
-                    fill="var(--color-chart-2)"
+                    stroke="var(--color-chart-1)"
+                    fill="var(--color-chart-1)"
                     fillOpacity={0.6}
                     name="Especies"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="diversidad"
+                    stackId="2"
+                    stroke="var(--color-accent)"
+                    fill="var(--color-accent)"
+                    fillOpacity={0.4}
+                    name="Índice Diversidad"
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -380,7 +495,7 @@ export function AnalysisSection() {
         {/* Temporal Distribution */}
         <Card className="bg-card border-border">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Observaciones por Mes</CardTitle>
+            <CardTitle className="text-lg">Patrón Temporal Mensual (EDA)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-72">
@@ -388,15 +503,27 @@ export function AnalysisSection() {
                 <LineChart data={temporalData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                   <XAxis dataKey="mes" stroke="var(--color-muted-foreground)" fontSize={12} />
-                  <YAxis stroke="var(--color-muted-foreground)" fontSize={12} />
+                  <YAxis yAxisId="left" stroke="var(--color-muted-foreground)" fontSize={12} />
+                  <YAxis yAxisId="right" orientation="right" stroke="var(--color-muted-foreground)" fontSize={12} />
                   <Tooltip content={<CustomTooltip />} />
+                  <Legend />
                   <Line
+                    yAxisId="left"
                     type="monotone"
                     dataKey="observaciones"
                     stroke="var(--color-chart-1)"
                     strokeWidth={3}
                     dot={{ fill: "var(--color-chart-1)", strokeWidth: 2 }}
                     name="Observaciones"
+                  />
+                  <Line
+                    yAxisId="right"
+                    type="monotone"
+                    dataKey="especies"
+                    stroke="var(--color-accent)"
+                    strokeWidth={2}
+                    dot={{ fill: "var(--color-accent)" }}
+                    name="Especies Detectadas"
                   />
                 </LineChart>
               </ResponsiveContainer>

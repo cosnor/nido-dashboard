@@ -1,26 +1,27 @@
 "use client"
 
+import Image from "next/image"
 import { Bird, Headphones, MapPin, Mountain, Users, Waves } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 
 const kpis = [
   {
     label: "Especies Objetivo",
-    value: "1,247",
+    value: "75",
     icon: Bird,
     color: "from-primary to-primary/70",
     description: "Aves monitoreadas",
   },
   {
     label: "Audios Procesados",
-    value: "45,892",
+    value: "26 K",
     icon: Headphones,
     color: "from-accent to-accent/70",
     description: "Grabaciones analizadas",
   },
   {
     label: "Observaciones",
-    value: "128,456",
+    value: "1 M",
     icon: MapPin,
     color: "from-nido-coral to-nido-coral/70",
     description: "Registros geográficos",
@@ -34,7 +35,7 @@ const kpis = [
   },
   {
     label: "Familias Taxonómicas",
-    value: "84",
+    value: "20",
     icon: Users,
     color: "from-nido-yellow to-nido-yellow/70",
     description: "Clasificaciones",
@@ -70,20 +71,31 @@ function BioacousticVisualization() {
     <Card className="bg-card border-border overflow-hidden">
       <CardContent className="p-6">
         <h3 className="text-lg font-semibold text-foreground mb-4">Actividad Bioacústica en Tiempo Real</h3>
+        <style>{`
+          @keyframes audioBarAnimation {
+            0%, 100% { height: var(--bar-height-start, 30%); }
+            50% { height: var(--bar-height-peak, 80%); }
+          }
+          .audio-bar {
+            animation: audioBarAnimation 1.5s ease-in-out infinite;
+          }
+        `}</style>
         <div className="h-32 flex items-end justify-center gap-1">
           {[...Array(40)].map((_, i) => {
-            const height = 20 + Math.sin(i * 0.3) * 30 + Math.random() * 40
+            const baseHeight = 20 + Math.sin(i * 0.3) * 30
+            const peakHeight = baseHeight + 40
             const isHighlight = i % 5 === 0
             return (
               <div
                 key={i}
-                className={`w-2 rounded-t transition-all duration-500 ${
+                className={`w-2 rounded-t audio-bar ${
                   isHighlight ? "bg-primary" : "bg-accent/60"
                 }`}
                 style={{
-                  height: `${height}%`,
+                  "--bar-height-start": `${baseHeight}%`,
+                  "--bar-height-peak": `${peakHeight}%`,
                   animationDelay: `${i * 0.05}s`,
-                }}
+                } as React.CSSProperties}
               />
             )
           })}
@@ -107,14 +119,14 @@ function ColombiaMapPreview() {
       <CardContent className="p-6">
         <h3 className="text-lg font-semibold text-foreground mb-4">Cobertura Geográfica</h3>
         <div className="relative h-48 bg-gradient-to-b from-secondary/50 to-secondary/20 rounded-lg overflow-hidden">
-          {/* Simplified Colombia map representation */}
-          <svg viewBox="0 0 200 200" className="w-full h-full opacity-30">
-            <path
-              d="M100,20 L140,40 L160,80 L150,120 L160,160 L140,180 L100,190 L60,180 L40,160 L50,120 L40,80 L60,40 Z"
-              fill="currentColor"
-              className="text-primary"
-            />
-          </svg>
+          {/* Colombia map from SVG asset */}
+          <Image
+            src="/co-sil.svg"
+            alt="Mapa de Colombia"
+            fill
+            className="opacity-30 object-contain"
+          />
+          
           {/* Sample observation points */}
           {[
             { x: 30, y: 25, size: 12 },
@@ -146,10 +158,7 @@ function ColombiaMapPreview() {
         </div>
         <div className="flex items-center justify-between mt-4">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-primary animate-pulse" />
-            <span className="text-xs text-muted-foreground">Zonas activas de monitoreo</span>
           </div>
-          <span className="text-xs text-accent font-medium">Ver mapa completo</span>
         </div>
       </CardContent>
     </Card>
