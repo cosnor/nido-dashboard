@@ -27,8 +27,8 @@ export default function NidoDashboard() {
         return <InteractionSection />
       case "pipeline":
         return <PipelineSection />
-      case "lightgbm":
-        return <LightGBMSection />
+ //     case "lightgbm":
+   //     return <LightGBMSection />
       case "retraining":
         return <RetrainingSection />
       case "applications":

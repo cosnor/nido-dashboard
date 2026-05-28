@@ -34,7 +34,7 @@ const navItems = [
   { id: "analysis", label: "Análisis Exploratorio", icon: BarChart3 },
   { id: "interaction", label: "Identificación de Aves", icon: Mic },
   { id: "pipeline", label: "Pipeline del Modelo", icon: GitBranch },
-  { id: "lightgbm", label: "Modelo LightGBM", icon: Trees },
+  //{ id: "lightgbm", label: "Modelo LightGBM", icon: Trees },
   { id: "retraining", label: "Reentrenamiento", icon: RefreshCw },
   { id: "applications", label: "Aplicaciones", icon: Layers },
   { id: "comparison", label: "Comparación de Modelos", icon: LineChart },
