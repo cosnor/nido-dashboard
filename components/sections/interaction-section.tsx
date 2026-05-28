@@ -86,7 +86,17 @@ export function InteractionSection() {
   const [showPrediction, setShowPrediction] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-
+  const getElevation = async (lat: number, lng: number): Promise<number> => {
+  try {
+    const res = await fetch(
+      `https://api.open-elevation.com/api/v1/lookup?locations=${lat},${lng}`
+    )
+    const data = await res.json()
+    return data.results?.[0]?.elevation ?? 500
+  } catch {
+    return 500  // fallback si falla la API
+  }
+}
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
@@ -112,17 +122,14 @@ export function InteractionSection() {
     setLocation({ lat: 4.7109, lng: -74.0721, elevation: 2640, name: "Mi ubicación" })
   }
 
-  const setManualLocation = () => {
-    if (manualCoords.lat && manualCoords.lng) {
-      // Mock elevation calculation
-      const elevation = Math.floor(Math.random() * 3000) + 100
-      setLocation({
-        lat: parseFloat(manualCoords.lat),
-        lng: parseFloat(manualCoords.lng),
-        elevation,
-      })
-    }
+const setManualLocation = async () => {
+  if (manualCoords.lat && manualCoords.lng) {
+    const lat = parseFloat(manualCoords.lat)
+    const lng = parseFloat(manualCoords.lng)
+    const elevation = await getElevation(lat, lng)
+    setLocation({ lat, lng, elevation })
   }
+}
 
   const handleCitySelect = (cityName: string) => {
     setSelectedCity(cityName)
@@ -137,13 +144,11 @@ export function InteractionSection() {
     }
   }
 
-  const handleMapClick = (lat: number, lng: number) => {
-    // Mock elevation calculation based on coordinates
-    const elevation = Math.floor(Math.random() * 3000) + 100
-    setMapClickCoords({ lat, lng })
-    setLocation({ lat, lng, elevation })
-  }
-
+const handleMapClick = async (lat: number, lng: number) => {
+  setMapClickCoords({ lat, lng })
+  const elevation = await getElevation(lat, lng)
+  setLocation({ lat, lng, elevation })
+}
   const getDayOfYear = (dateStr: string) => {
     const date = new Date(dateStr)
     const start = new Date(date.getFullYear(), 0, 0)
