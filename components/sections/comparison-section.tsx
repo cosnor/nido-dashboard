@@ -456,10 +456,10 @@ export function ComparisonSection() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <GenericMetricCard
             metric="Top-1 Accuracy"
-            value1={72.3}
-            value2={68.5}
-            value3={89.2}
-            improvement="+23.2%"
+            value1={78.8}
+            value2={2.4}
+            value3={80.6}
+            improvement="+2.28%"
             label1="Audio"
             label2="Geo"
             label3="Fusion"
@@ -470,10 +470,10 @@ export function ComparisonSection() {
           />
           <GenericMetricCard
             metric="Top-5 Accuracy"
-            value1={89.1}
-            value2={85.2}
-            value3={97.5}
-            improvement="+9.4%"
+            value1={90.7}
+            value2={5.8}
+            value3={91.0}
+            improvement="+0.33%"
             label1="Audio"
             label2="Geo"
             label3="Fusion"
@@ -484,10 +484,10 @@ export function ComparisonSection() {
           />
           <GenericMetricCard
             metric="Macro-F1"
-            value1={68.5}
-            value2={64.8}
-            value3={86.8}
-            improvement="+26.6%"
+            value1={73.98}
+            value2={0.0}
+            value3={75.23}
+            improvement="+1.7%"
             label1="Audio"
             label2="Geo"
             label3="Fusion"
