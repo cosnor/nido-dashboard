@@ -268,23 +268,23 @@ export function ComparisonSection() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           metric="Top-1 Accuracy"
-          birdnet={72.3}
-          nidonet={84.7}
-          improvement="+17.2%"
+          birdnet={69.86}
+          nidonet={80.6}
+          improvement="+15.37%"
           icon={Target}
         />
         <MetricCard
           metric="Top-5 Accuracy"
-          birdnet={89.1}
-          nidonet={95.2}
-          improvement="+6.8%"
+          birdnet={84.87}
+          nidonet={91.0}
+          improvement="+7.22%"
           icon={CheckCircle2}
         />
         <MetricCard
           metric="Macro-F1"
-          birdnet={68.5}
-          nidonet={81.3}
-          improvement="+18.7%"
+          birdnet={60.1}
+          nidonet={75.23}
+          improvement="+25.17%"
           icon={TrendingUp}
         />
         <MetricCard
