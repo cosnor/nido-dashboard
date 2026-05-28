@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 const kpis = [
   {
     label: "Especies Objetivo",
-    value: "75",
+    value: "263",
     icon: Bird,
     color: "from-primary to-primary/70",
     description: "Aves monitoreadas",
@@ -35,7 +35,7 @@ const kpis = [
   },
   {
     label: "Familias Taxonómicas",
-    value: "20",
+    value: "42",
     icon: Users,
     color: "from-nido-yellow to-nido-yellow/70",
     description: "Clasificaciones",

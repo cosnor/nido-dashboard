@@ -14,7 +14,11 @@ import {
   Zap, History, Loader2, Minus, X, XCircle,
 } from "lucide-react"
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL
+const API_BASE = process.env.NEXT_PUBLIC_API_URL!
+  .replace(/\/$/, '')
+  .replace(/\/[^\/]+$/, '')
+
+
 
 // ── Toast ──────────────────────────────────────────────────────────────────
 

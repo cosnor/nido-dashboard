@@ -20,49 +20,49 @@ import {
 import { Trophy, Zap, Target, Clock, TrendingUp, CheckCircle2, ArrowUp } from "lucide-react"
 
 const comparisonData = [
-  { metric: "Top-1 Accuracy", BirdNET: 69.86, NidoNET: 81.53, improvement: "+16.7%" },
-  { metric: "Top-5 Accuracy", BirdNET: 84.87, NidoNET: 85, improvement: "0.05%" },
-  { metric: "Macro-F1", BirdNET: 60.1, NidoNET: 55.4, improvement: "-7.8%" },
-  { metric: "MRR", BirdNET: 77.5, NidoNET: 82.9, improvement: "+7.0%" },
-  { metric: "Avg Rank", BirdNET: 2.59, NidoNET: 48.1, improvement: "-1757.1%" }
+  { metric: "Top-1 Accuracy", BirdNET: 69.86, NidoNET: 80.60, improvement: "+15.37%" },
+  { metric: "Top-5 Accuracy", BirdNET: 84.87, NidoNET: 91.00, improvement: "+7.22%" },
+  { metric: "Macro-F1", BirdNET: 60.1, NidoNET:  75.23, improvement: "+25.17%" },
+  { metric: "MRR", BirdNET: 77.5, NidoNET: 85.28, improvement: "+10.04%" },
+  { metric: "Avg Rank", BirdNET: 2.59, NidoNET: 4.50, improvement: "-73.75%" }
 ]
 
 const radarData = [
-  { metric: "Precisión", BirdNET: 66.1, NidoNET: 55.47 },
-  { metric: "Recall", BirdNET: 58.9, NidoNET: 57.98 },
-  { metric: "F1-Score", BirdNET: 60.1, NidoNET: 55.44 },
+  { metric: "Precisión", BirdNET: 66.1, NidoNET: 80.46 },
+  { metric: "Recall", BirdNET: 58.9, NidoNET: 75.13 },
+  { metric: "F1-Score", BirdNET: 60.1, NidoNET: 75.23 },
   { metric: "Velocidad", BirdNET: 89.8, NidoNET: 98.39 },
-  { metric: "Robustez", BirdNET: 82.3, NidoNET: 20.29 },
-  { metric: "Generalización", BirdNET: 77.5, NidoNET: 68.35 },
+  { metric: "Robustez", BirdNET: 82.3, NidoNET: 66.54 },
+  { metric: "Generalización", BirdNET: 77.5, NidoNET: 89.64},
 ]
 
 const barChartData = [
-  { name: "Top-1", BirdNET: 69.86, NidoNET: 81.53 },
-  { name: "Top-5", BirdNET: 84.87, NidoNET: 85 },
-  { name: "MRR", BirdNET: 77.5, NidoNET: 82.9 },
+  { name: "Top-1", BirdNET: 69.86, NidoNET: 80.60 },
+  { name: "Top-5", BirdNET: 84.87, NidoNET: 91.00 },
+  { name: "MRR", BirdNET: 77.5, NidoNET: 85.28 },
 ]
 
 const audioGeospatialData = [
-  { metric: "Top-1 Accuracy", AudioOnly: 81.2, GeoOnly: 2, Fusion: 81.53, improvement: "+0.4%" },
-  { metric: "Top-5 Accuracy", AudioOnly: 83.9, GeoOnly: 7.87, Fusion: 84.23, improvement: "+0.4%" },
-  { metric: "Macro-F1", AudioOnly: 54.7, GeoOnly: 1, Fusion: 55.4, improvement: "+1.3%" },
-  { metric: "MRR", AudioOnly: 49.65, GeoOnly: 6.19, Fusion: 82.9, improvement: "+67.0%" },
-  { metric: "Avg Rank", AudioOnly: 49.65, GeoOnly: 333, Fusion: 48.1, improvement: "+3.1%" }
+  { metric: "Top-1 Accuracy", AudioOnly: 78.80, GeoOnly: 2.40, Fusion: 80.60, improvement: "+2.3%" },
+  { metric: "Top-5 Accuracy", AudioOnly: 90.70, GeoOnly: 5.80, Fusion: 91.00, improvement: "+0.3%" },
+  { metric: "Macro-F1", AudioOnly: 73.98, GeoOnly: 0.00, Fusion: 75.23, improvement: "+1.7%" },
+  { metric: "MRR", AudioOnly: 84.34, GeoOnly: 4.91, Fusion: 85.28, improvement: "+1.1%" },
+  { metric: "Avg Rank", AudioOnly: 4.53, GeoOnly: 435.94, Fusion: 4.50, improvement: "+0.7%" }
 ]
 
 const audioGeospatialRadarData = [
-  { metric: "Precisión", NidoNet:  55.47 },
-  { metric: "Recall", NidoNet: 57.98},
-  { metric: "F1-Score", NidoNet: 55.44 },
-  { metric: "Velocidad", NidoNet: 98.39 },
-  { metric: "Robustez", NidoNet: 20.29},
-  { metric: "Generalización", NidoNet: 68.35 },
+  { metric: "Precisión", NidoNet: 80.46 },
+  { metric: "Recall", NidoNet: 75.13 },
+  { metric: "F1-Score", NidoNet: 75.23 },
+  { metric: "Velocidad", NidoNet: 99.56 },
+  { metric: "Robustez", NidoNet: 66.54 },
+  { metric: "Generalización", NidoNet: 89.64 },
 ]
 
 const audioGeospatialBarData = [
-  { name: "Top-1", AudioOnly: 72.3, GeoOnly: 68.5, Fusion: 89.2 },
-  { name: "Top-5", AudioOnly: 89.1, GeoOnly: 85.2, Fusion: 97.5 },
-  { name: "Macro-F1", AudioOnly: 68.5, GeoOnly: 64.8, Fusion: 86.8 },
+  { name: "Top-1", AudioOnly: 78.80, GeoOnly: 2.40, Fusion: 80.60 },
+  { name: "Top-5", AudioOnly: 90.70, GeoOnly: 5.80, Fusion: 91.00 },
+  { name: "Macro-F1", AudioOnly: 73.98, GeoOnly: 0.00, Fusion: 75.23 },
 ]
 
 const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; name: string; color: string }>; label?: string }) => {
