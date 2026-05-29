@@ -140,9 +140,9 @@ export function MotivationSection() {
                     <challenge.icon className="w-5 h-5 text-primary" />
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center justify-between">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                       <h4 className="font-medium text-foreground">{challenge.title}</h4>
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-xs self-start sm:self-auto whitespace-nowrap">
                         {challenge.stat} {challenge.statLabel}
                       </Badge>
                     </div>
@@ -199,21 +199,21 @@ export function MotivationSection() {
           <CardTitle className="text-lg">Fuentes de Datos</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 rounded-lg bg-secondary/50">
-              <p className="text-2xl font-bold text-primary">Xeno-canto</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+            <div className="text-center p-3 md:p-4 rounded-lg bg-secondary/50">
+              <p className="text-lg md:text-2xl font-bold text-primary">Xeno-canto</p>
               <p className="text-xs text-muted-foreground mt-1">Grabaciones bioacústicas</p>
             </div>
-            <div className="text-center p-4 rounded-lg bg-secondary/50">
-              <p className="text-2xl font-bold text-accent">eBird</p>
+            <div className="text-center p-3 md:p-4 rounded-lg bg-secondary/50">
+              <p className="text-lg md:text-2xl font-bold text-accent">eBird</p>
               <p className="text-xs text-muted-foreground mt-1">Observaciones georreferenciadas</p>
             </div>
-            <div className="text-center p-4 rounded-lg bg-secondary/50">
-              <p className="text-2xl font-bold text-nido-coral">GBIF</p>
+            <div className="text-center p-3 md:p-4 rounded-lg bg-secondary/50">
+              <p className="text-lg md:text-2xl font-bold text-nido-coral">GBIF</p>
               <p className="text-xs text-muted-foreground mt-1">Datos de biodiversidad</p>
             </div>
-            <div className="text-center p-4 rounded-lg bg-secondary/50">
-              <p className="text-2xl font-bold text-chart-3">SiB</p>
+            <div className="text-center p-3 md:p-4 rounded-lg bg-secondary/50">
+              <p className="text-lg md:text-2xl font-bold text-chart-3">SiB</p>
               <p className="text-xs text-muted-foreground mt-1">Sistema de Información sobre Biodiversidad de Colombia</p>
             </div>
           </div>

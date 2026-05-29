@@ -134,13 +134,14 @@ function FilterBar() {
   return (
     <Card className="bg-card border-border">
       <CardContent className="p-4">
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-muted-foreground" />
             <span className="text-sm font-medium text-foreground">Filtros:</span>
           </div>
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
           <Select defaultValue="all">
-            <SelectTrigger className="w-40 bg-input border-border">
+            <SelectTrigger className="w-full sm:w-40 bg-input border-border">
               <SelectValue placeholder="Región" />
             </SelectTrigger>
             <SelectContent>
@@ -153,7 +154,7 @@ function FilterBar() {
             </SelectContent>
           </Select>
           <Select defaultValue="all">
-            <SelectTrigger className="w-40 bg-input border-border">
+            <SelectTrigger className="w-full sm:w-40 bg-input border-border">
               <SelectValue placeholder="Familia" />
             </SelectTrigger>
             <SelectContent>
@@ -165,7 +166,7 @@ function FilterBar() {
             </SelectContent>
           </Select>
           <Select defaultValue="all">
-            <SelectTrigger className="w-44 bg-input border-border">
+            <SelectTrigger className="w-full sm:w-44 bg-input border-border">
               <SelectValue placeholder="Elevación" />
             </SelectTrigger>
             <SelectContent>
@@ -175,7 +176,8 @@ function FilterBar() {
               <SelectItem value="highland">Alta montaña (2500m+)</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" size="sm" className="ml-auto">
+          </div>
+          <Button variant="outline" size="sm" className="w-full sm:w-auto sm:ml-auto">
             Aplicar filtros
           </Button>
         </div>
@@ -194,7 +196,7 @@ function ColombiaMap() {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[400px] w-full relative">
+        <div className="h-[280px] sm:h-[380px] md:h-[450px] w-full relative">
           <ComposableMap
             projection="geoMercator"
             projectionConfig={{
@@ -331,11 +333,11 @@ function EdaMapGallery() {
       </CardHeader>
       <CardContent>
         <figure className="space-y-3">
-          <div className="flex min-h-[420px] w-full items-center justify-center overflow-hidden rounded-md border border-border bg-muted/30">
+          <div className="flex min-h-[300px] sm:min-h-[420px] w-full items-center justify-center overflow-hidden rounded-md border border-border bg-muted/30">
             <iframe
               src={selectedMap.src}
               title={selectedMap.title}
-              className="h-[620px] w-full border-0"
+              className="h-[400px] sm:h-[520px] md:h-[620px] w-full border-0"
             />
           </div>
           <figcaption className="text-sm text-muted-foreground">
@@ -465,7 +467,7 @@ export function AnalysisSection() {
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={elevationData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                  <XAxis dataKey="elevation" stroke="var(--color-muted-foreground)" fontSize={12} />
+                  <XAxis dataKey="elevation" stroke="var(--color-muted-foreground)" fontSize={11} angle={-30} textAnchor="end" height={50} tick={{ fontSize: 10 }} />
                   <YAxis stroke="var(--color-muted-foreground)" fontSize={12} />
                   <Tooltip content={<CustomTooltip />} />
                   <Area
@@ -541,7 +543,7 @@ export function AnalysisSection() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={familyData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                  <XAxis dataKey="familia" stroke="var(--color-muted-foreground)" fontSize={12} />
+                  <XAxis dataKey="familia" stroke="var(--color-muted-foreground)" fontSize={11} angle={-25} textAnchor="end" height={55} tick={{ fontSize: 10 }} />
                   <YAxis stroke="var(--color-muted-foreground)" fontSize={12} />
                   <Tooltip content={<CustomTooltip />} />
                   <Bar dataKey="especies" fill="var(--color-chart-3)" radius={[4, 4, 0, 0]} name="Especies" />
